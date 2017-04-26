@@ -17,6 +17,7 @@ namespace TextDungeonGame
             Console.SetBufferSize(gameSize, gameSize);
             Console.SetWindowSize(gameSize, gameSize);
             Console.CursorVisible = false;
+            
 
             //Initialises the map
             Map = new Map(55, 55);

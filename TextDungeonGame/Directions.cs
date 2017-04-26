@@ -43,18 +43,18 @@ namespace TextDungeonGame
             Value = direction;
         }
 
-        public Position AdjacentCell(int x, int y)
+        public Position AdjacentCell(int x, int y, int distance = 1)
         {
             switch (Value)
             {
                 case Directions.left:
-                    return new Position(x - 1, y);
+                    return new Position(x - distance, y);
                 case Directions.right:
-                    return new Position(x + 1, y);
+                    return new Position(x + distance, y);
                 case Directions.up:
-                    return new Position(x, y - 1);
+                    return new Position(x, y - distance);
                 case Directions.down:
-                    return new Position(x, y + 1);
+                    return new Position(x, y + distance);
             }
             return new Position(0, 0);
         }

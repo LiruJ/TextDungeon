@@ -11,7 +11,9 @@ namespace TextDungeonGame
         private Random random = new Random();
         private int numberOfTries = 300;
         private int corridorCount = 0;
-        private int corridorsToLeave = 700;
+        private int corridorsToLeave = 550;
+        private int wallsToRemove = 90;
+        private int chanceToBendPath = 75;
         private List<Room> rooms;
 
 
@@ -19,7 +21,7 @@ namespace TextDungeonGame
         {
             resetMap();
 
-            placeRooms(20);
+            placeRooms(25);
 
             generateMaze();
 
@@ -48,8 +50,12 @@ namespace TextDungeonGame
             {
                 for (int t = 0; t < numberOfTries; t++)
                 {
-                    int width = random.Next(5, 10), height = random.Next(4, 7);
+                    int width = random.Next(5, 12), height = random.Next(3, 6);
                     int x = random.Next(3, Width - width - 3), y = random.Next(3, Height - height - 3);
+                    if (x % 2 == 0) x--;
+                    if (y % 2 == 0) y--;
+                    if (width % 2 == 0) width--;
+                    if (height % 2 == 0) height--;
 
                     if (isAreaClear(x, y, width, height))
                     {
@@ -65,7 +71,7 @@ namespace TextDungeonGame
 
         private void generateMaze()
         {
-            Direction startSide = Direction.RandomDirection(random);
+            Direction startSide = Direction.Down;//Direction.RandomDirection(random);
 
             int startX = 0, startY = 0;
             int currentX = 0, currentY = 0;
@@ -75,98 +81,87 @@ namespace TextDungeonGame
                 case Directions.left:
                     startX = 0;
                     startY = random.Next(1, Height - 2);
+                    if (startY % 2 == 0) startY--;
                     currentX = 1;
                     currentY = startY;
                     break;
                 case Directions.right:
                     startX = Width - 1;
                     startY = random.Next(1, Height - 2);
+                    if (startY % 2 == 0) startY--;
                     currentX = startX - 1;
                     currentY = startY;
                     break;
                 case Directions.up:
                     startX = random.Next(1, Width - 2);
+                    if (startX % 2 == 0) startX--;
                     startY = 0;
                     currentX = startX;
                     currentY = 1;
                     break;
                 case Directions.down:
                     startX = random.Next(1, Width - 2);
+                    if (startX % 2 == 0) startX--;
                     startY = Height - 1;
                     currentX = startX;
                     currentY = startY - 1;
                     break;
             }
 
-            data[startX, startY] = ' ';
-            corridorCount = 1;
-            visitCell(currentX, currentY, startSide.Value);
+            SpawnPoint = new Position(startX, startY);
 
+            visitCell(currentX, currentY, startSide);
         }
 
-        private void visitCell(int x, int y, Directions from)
+        private void visitCell(int x, int y, Direction from)
         {
-            if (!isCellValid(x, y, from)) return;
+            if (!isCellValid(x, y)) return;
 
-            corridorCount++;
+            this[from.AdjacentCell(x, y)] = ' ';
+
+            corridorCount += 2;
 
             this[x, y] = ' ';
 
             List<Direction> possibleDirections = Direction.GetRandomDirections(random);
-            possibleDirections.Remove(new Direction(from));
+            possibleDirections.RemoveAll(item => item.Value == from.Value);
 
-            if (random.Next(101) > 60)
+            if (random.Next(101) > chanceToBendPath)
             {
                 //TODO: Make this less stupid, seriously
-                Direction to = new Direction(new Direction(from).Opposite);
-                possibleDirections.Remove(to);
-                visitCell(to.AdjacentCell(x, y).X, to.AdjacentCell(x, y).Y, from);
+                Direction to = new Direction(from.Opposite);
+                possibleDirections.RemoveAll(item => item.Value == to.Value);
+                visitCell(to.AdjacentCell(x, y, 2).X, to.AdjacentCell(x, y, 2).Y, from);
             }
 
             foreach (Direction d in possibleDirections)
             {
-                Position adjacentCell = d.AdjacentCell(x, y);
-                if (d.Value != from)
-                    visitCell(adjacentCell.X, adjacentCell.Y, d.Opposite);
+                Position adjacentCell = d.AdjacentCell(x, y, 2);
+                visitCell(adjacentCell.X, adjacentCell.Y, new Direction(d.Opposite));
             }
         }
 
-        private bool isCellValid(int x, int y, Directions from)
+        private bool isCellValid(int x, int y)
         {
+            if (!coordsInRange(x, y))
+                return false;
             //If the left tile needs to be checked and the tile is empty, return false
-            if (from != Directions.left && tileIsClear(x - 1, y))
+            if (tileIsClear(x - 1, y))
                 return false;
-            if (from != Directions.right && tileIsClear(x + 1, y))
+            if (tileIsClear(x + 1, y))
                 return false;
-            if (from != Directions.up && tileIsClear(x, y - 1))
+            if (tileIsClear(x, y - 1))
                 return false;
-            if (from != Directions.down && tileIsClear(x, y + 1))
+            if (tileIsClear(x, y + 1))
                 return false;
-
-            Directions to = new Direction(from).Opposite;
-
-            switch (to)
-            {
-                case Directions.left:
-                    if (tileIsClear(x - 1, y - 1) || tileIsClear(x - 1, y + 1))
-                        return false;
-                    break;
-                case Directions.right:
-                    if (tileIsClear(x + 1, y - 1) || tileIsClear(x + 1, y + 1))
-                        return false;
-                    break;
-                case Directions.up:
-                    if (tileIsClear(x + 1, y - 1) || tileIsClear(x - 1, y - 1))
-                        return false;
-                    break;
-                case Directions.down:
-                    if (tileIsClear(x - 1, y + 1) || tileIsClear(x + 1, y + 1))
-                        return false;
-                    break;
-            }
-
 
             return true;
+
+
+
+
+
+
         }
 
         private bool isAreaClear(int x, int y, int width, int height)
@@ -180,6 +175,8 @@ namespace TextDungeonGame
 
         private bool cellIsDeadEnd(int x, int y)
         {
+            if (x == SpawnPoint.X && y == SpawnPoint.Y) return false;
+
             int emptySides = 0;
 
             if (!tileIsClear(x, y))return false;
@@ -198,11 +195,18 @@ namespace TextDungeonGame
             for (int x = 1; x < Width - 1; x++)
                 for (int y = 1; y < Height - 1; y++)
                 {
-                    if (((tileIsClear(Direction.Left.AdjacentCell(x, y)) && tileIsClear(Direction.Right.AdjacentCell(x, y)))
-                        || (tileIsClear(Direction.Up.AdjacentCell(x, y)) && tileIsClear(Direction.Down.AdjacentCell(x, y)))) && this[x, y] == '#')
-                        if (random.Next(101) < 85) this[x, y] = ' ';
+                    if ((this[Direction.Left.AdjacentCell(x, y)] == ' ' && this[Direction.Right.AdjacentCell(x, y)] == ' ') ||
+                        (this[Direction.Up.AdjacentCell(x, y)] == ' ' && this[Direction.Down.AdjacentCell(x, y)] == ' ') && this[x, y] == '#')
+                        walls.Add(new Position(x, y));
                 }
                     
+            for (int w = 0; w < wallsToRemove; w++)
+            {
+                if (walls.Count == 0) break;
+                int index = random.Next(walls.Count);
+                this[walls[index]] = ' ';
+                walls.RemoveAt(index);
+            }
         }
 
         private List<Position> findDeadEnds()
@@ -307,12 +311,12 @@ namespace TextDungeonGame
                 if (roomToCorridors.Count > 0)
                 {
                     int currentCorridorDoors = 0;
-                    int desiredCorridorDoors = Math.Max(1, roomToCorridors.Count / 4);
+                    int desiredCorridorDoors = Math.Max(1, roomToCorridors.Count / 6);
 
                     while (currentCorridorDoors < desiredCorridorDoors)
                     {
                         Position doorPosition = roomToCorridors[random.Next(roomToCorridors.Count)];
-                        map[doorPosition] = ' ';
+                        map[doorPosition] = '+';
                         roomToCorridors.Remove(doorPosition);
                         currentCorridorDoors++;
                     }
@@ -321,12 +325,12 @@ namespace TextDungeonGame
                 if (roomToRooms.Count > 0)
                 {
                     int currentRoomDoors = 0;
-                    int desiredRoomDoors = Math.Max(1, roomToRooms.Count / 6);
+                    int desiredRoomDoors = Math.Max(1, roomToRooms.Count / 10);
 
                     while (currentRoomDoors < desiredRoomDoors)
                     {
                         Position doorPosition = roomToRooms[random.Next(roomToRooms.Count)];
-                        map[doorPosition] = ' ';
+                        map[doorPosition] = '+';
                         roomToRooms.Remove(doorPosition);
                         currentRoomDoors++;
                     }
