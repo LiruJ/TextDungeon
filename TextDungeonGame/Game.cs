@@ -61,7 +61,7 @@ namespace TextDungeonGame
             switch (Console.ReadKey().Key)
             {
                 case ConsoleKey.Spacebar:
-                    Map = new Map(55, 55);
+                    initialiseGameWorld();
                     break;
                 case ConsoleKey.W:
                     Map.Update(Direction.Up);
