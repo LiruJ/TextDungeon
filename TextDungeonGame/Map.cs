@@ -1,53 +1,135 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using TextDungeonGame.Entities;
 
 namespace TextDungeonGame
 {
-    
-
-    public partial class Map
+    /// <summary>The interface used by anything wanting to draw the map</summary>
+    public interface IDrawableMap
     {
-        private char[,] data;
+        #region Properites
+        int Width { get; }
+        int Height { get; }
+        Player Player { get; }
+        #endregion
+
+        #region Indexers
+        Map.Cells this[int x, int y] { get; }
+        Map.Cells this[Position pos] { get; }
+        #endregion
+
+        #region Functions
+        bool CellIsTransparent(Position pos);
+        #endregion
+    }
+
+    public partial class Map : IDrawableMap
+    {
+        #region Public Properties
+        /// <summary>The width of the map</summary>
         public int Width { get; private set; }
+
+        /// <summary>The height of the map</summary>
         public int Height { get; private set; }
+
+        /// <summary>The position at which the player will spawn</summary>
         public Position SpawnPoint { get; private set; }
 
-        public char this[int x, int y]
+        /// <summary>The player entity</summary>
+        public Player Player { get; private set; }
+
+        /// <summary>The cells and their assigned character</summary>
+        public enum Cells { Wall = '#', Floor = '.', Door = '%', Room = 'R', OutOfRange = 'N', Fog = ' ' }
+        #endregion
+
+        #region Private Properties
+        /// <summary>The map's data, this[] should be used instead of directly changing this array</summary>
+        private Cells[,] data;
+        #endregion
+
+        #region Indexers
+        /// <summary>Gets the cell at x,y</summary>
+        /// <param name="x">The x position of the cell</param>
+        /// <param name="y">The y position of the cell</param>
+        /// <returns>The character at x,y, or 'N' if x,y is out of range</returns>
+        public Cells this[int x, int y]
         {
-            get { return (coordsInRange(x, y)) ? data[x, y] : 'N'; }
-            set { if (coordsInRange(x, y)) { data[x, y] = value; } }
+            get { return (coordsInRange(x, y)) ? data[x, y] : Cells.OutOfRange; }
+            private set { if (coordsInRange(x, y)) { data[x, y] = value; } }
         }
 
-        public char this[Position p]
+        /// <summary>Gets the cell at pos</summary>
+        /// <param name="pos">The position of the cell</param>
+        /// <returns>The character at pos, or 'N' if pos is out of range</returns>
+        public Cells this[Position pos]
         {
-            get { return this[p.X, p.Y]; }
-            set { this[p.X, p.Y] = value; }
+            get { return this[pos.X, pos.Y]; }
+            set { this[pos.X, pos.Y] = value; }
         }
+        #endregion
 
+        #region Constructors
+        /// <summary>Creates a new map with the given width and height</summary>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
         public Map(int width, int height)
         {
+            //If the width or height is even, make it odd
             Width = (width % 2 == 0) ? width - 1 : width;
             Height = (height % 2 == 0) ? height - 1 : height;
+
+            //Generates the map
             generateMap();
+
+            //Creates the player at the spawn point
+            Player = new Player(SpawnPoint);
+        }
+        #endregion
+
+        #region Public Functions
+        /// <summary>Updates the entities in the map</summary>
+        /// <param name="playerMove">The direction to move the player</param>
+        public void Update(Direction playerMove)
+        {
+            //If the player can't move, don't update the map
+            if (!cellIsWalkable(Player.Position + playerMove.Normal)) return;
+
+            //Move the player in their desired direction
+            Player.Move(playerMove);
         }
 
+        /// <summary>Finds if a cell allows vision to pass over it</summary>
+        /// <param name="pos">The position of the cell to check</param>
+        /// <returns>Whether or not the cell is transparent</returns>
+        public bool CellIsTransparent(Position pos)
+        {
+            return coordsInRange(pos) && (this[pos] == Cells.Floor);
+        }
+        #endregion
+
+        #region Private Functions
+        /// <summary>Finds if x,y is in range of the map</summary>
+        /// <param name="x">The x position to check</param>
+        /// <param name="y">The y position to check</param>
+        /// <returns>Whether or not x,y is in range of the map</returns>
         private bool coordsInRange(int x, int y)
         {
             return x >= 0 && x < Width && y >= 0 && y < Width;
         }
 
-        public bool tileIsClear(int x, int y)
+        /// <summary>Finds if pos is in range of the map</summary>
+        /// <param name="pos">The position to check</param>
+        /// <returns>Whether or not pos is in range of the map</returns>
+        private bool coordsInRange(Position pos)
         {
-            return coordsInRange(x, y) && (this[x, y] == ' ' || this[x, y] == 'R');
+            return coordsInRange(pos.X, pos.Y);
         }
 
-        public bool tileIsClear(Position p)
+        /// <summary>Finds if the cell at pos can be walked on</summary>
+        /// <param name="pos">The position to check</param>
+        /// <returns>Whether or not the cell is walkable</returns>
+        private bool cellIsWalkable(Position pos)
         {
-            return tileIsClear(p.X, p.Y);
+            return coordsInRange(pos) && (this[pos] == Cells.Floor || this[pos] == Cells.Door);
         }
-
+        #endregion
     }
 }

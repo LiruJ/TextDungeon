@@ -1,19 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TextDungeonGame
+﻿namespace TextDungeonGame
 {
     class Program
     {
+        #region Private Properties
         static private Game Game;
+        #endregion
 
+        #region Start
         static void Main(string[] args)
         {
+            //Starts a new game
             Game = new Game(60);
-
         }
+        #endregion
     }
 }

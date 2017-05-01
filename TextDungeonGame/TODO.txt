@@ -1,0 +1,8 @@
+Add furniture to rooms, including a room where the stairs will be
+Add a GUI to display player details, health, inventory, etc.
+Add items
+Make tile entities, doors, chests, etc.
+Add combat
+Add event log
+Comment code
+Add title screen, including game start with name input etc.

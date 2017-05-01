@@ -1,52 +1,87 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace TextDungeonGame
 {
-    class Game
+    public class Game
     {
+        #region Properties
+        /// <summary>The game map</summary>
         public Map Map;
 
-        public Game(int gameSize)
-        {
-            //Initialises the console window
-            Console.SetWindowSize(1, 1);
-            Console.SetBufferSize(gameSize, gameSize);
-            Console.SetWindowSize(gameSize, gameSize);
-            Console.CursorVisible = false;
-            
+        /// <summary>The player's camera</summary>
+        public Camera Camera;
+        #endregion
 
+        #region Constructors
+        /// <summary>Starts a new game with a given window size</summary>
+        /// <param name="windowSize">The desired width and height of the window in columns</param>
+        public Game(int windowSize)
+        {
+            initialiseWindow(windowSize);
+
+            initialiseGameWorld();
+
+            updateLoop();
+        }
+        #endregion
+
+        #region Private Functions
+        /// <summary>Initialises the game window</summary>
+        /// <param name="windowSize">The width and height of the game window in columns </param>
+        private void initialiseWindow(int windowSize)
+        {
+            //Sets the window size very low, as the buffer cannot be smaller than the window
+            Console.SetWindowSize(1, 1);
+
+            //Sets the size of the buffer and window
+            Console.SetBufferSize(windowSize, windowSize);
+            Console.SetWindowSize(windowSize, windowSize);
+
+            //Hides the cursor
+            Console.CursorVisible = false;
+        }
+
+        /// <summary> Initialises the camera and map, then draws </summary>
+        private void initialiseGameWorld()
+        {
             //Initialises the map
             Map = new Map(55, 55);
-            DrawMap();
 
-            ConsoleKey pressedKey;
-            do
-            {
-                pressedKey = Console.ReadKey().Key;
-                if (pressedKey == ConsoleKey.Spacebar)
-                {
-                    Map = new Map(55, 55);
-                    DrawMap();
-                }
-            }
-            while (pressedKey != ConsoleKey.Escape);
+            //Initialises the camera
+            Camera = new Camera(Map);
         }
 
-        public void DrawMap()
+        /// <summary>Handles input and updates the world</summary>
+        private void updateLoop()
         {
-            Console.Clear();
+            //Draws the updated scene
+            Camera.Draw();
 
-
-            for (int y = 0; y < Map.Height; y++)
+            //Holds the program until a key is pressed, then handles this input
+            switch (Console.ReadKey().Key)
             {
-                for (int x = 0; x < Map.Width; x++)
-                    Console.Write(Map[x, y]);
-                Console.WriteLine();
+                case ConsoleKey.Spacebar:
+                    Map = new Map(55, 55);
+                    break;
+                case ConsoleKey.W:
+                    Map.Update(Direction.Up);
+                    break;
+                case ConsoleKey.A:
+                    Map.Update(Direction.Left);
+                    break;
+                case ConsoleKey.D:
+                    Map.Update(Direction.Right);
+                    break;
+                case ConsoleKey.S:
+                    Map.Update(Direction.Down);
+                    break;
+                case ConsoleKey.Escape:
+                    return;
             }
+
+            //Calls upon itself in order to create a loop
+            updateLoop();
         }
+        #endregion
     }
 }
