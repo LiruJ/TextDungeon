@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using TextDungeonGame.Entities;
 
 namespace TextDungeonGame
 {
@@ -53,11 +54,15 @@ namespace TextDungeonGame
             return coordsInRange(pos) && (this[pos] == Cells.Floor || this[pos] == Cells.Room);
         }
 
-        /// <summary>Sets every cell on the map to a wall</summary>
+        /// <summary>Sets every cell on the map to a wall and initialises the entity list</summary>
         private void resetMap()
         {
             //Initialises the data array again
             data = new Cells[Width, Height];
+
+            //Initialises the entity list
+            Entities = new List<Entity>();
+            cellEntities = new bool[Width, Height];
 
             //Iterates over the array and sets each cell to a wall
             for (int x = 0; x < Width; x++)
@@ -339,10 +344,11 @@ namespace TextDungeonGame
         /// <summary>Fills the room with floor tiles and any furniture, also connects them to the corridors and other rooms via connectors</summary>
         private void generateRooms()
         {
-            //
+            //Adds doors to the rooms
             foreach (Room r in rooms)
                 r.CreateDoors(this, random);
 
+            //Fills the rooms with floors
             foreach (Room r in rooms)
                 r.FillRoom(this, Cells.Floor);
         }
@@ -452,7 +458,8 @@ namespace TextDungeonGame
                         Position doorPosition = roomToCorridors[random.Next(roomToCorridors.Count)];
 
                         //Sets this connector to a door and removes it from the list
-                        map[doorPosition] = Cells.Door;
+                        map[doorPosition] = Cells.Floor;
+                        map.AddEntity(new Door(doorPosition));
                         roomToCorridors.Remove(doorPosition);
 
                         //Increases the amount of doors by 1
@@ -476,7 +483,8 @@ namespace TextDungeonGame
                         Position doorPosition = roomToRooms[random.Next(roomToRooms.Count)];
 
                         //Sets this connector to a door and removes it from the list
-                        map[doorPosition] = Cells.Door;
+                        map[doorPosition] = Cells.Floor;
+                        map.AddEntity(new Door(doorPosition));
                         roomToRooms.Remove(doorPosition);
 
                         //Increases the amount of doors by 1

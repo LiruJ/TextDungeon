@@ -142,8 +142,21 @@ namespace TextDungeonGame
         /// <summary> Creates the entity data based on the location of the entities </summary>
         private void createEntityData()
         {
+            //Draws the entities
+            for (int y = 1; y < screenHeight - 1; y++)
+                for (int x = 1; x < screenWidth - 1; x++)
+                {
+                    //X and Y position based on the size of the screen and the player's location in the map
+                    int drawX = (drawableMap.Player.Position - screenCentre).X + x;
+                    int drawY = (drawableMap.Player.Position - screenCentre).Y + y;
+
+                    //If the cell has an entity on it, draw it
+                    if (drawableMap.CellHasEntity(new Position(drawX, drawY)) && getDiscoveredTile(drawX, drawY))
+                        screenData[x, y] = drawableMap.GetEntityAtPosition(new Position(drawX, drawY)).Character;
+                }
+
             //Draws the player in the centre of the screen
-            screenData[screenCentre.X, screenCentre.Y] = drawableMap.Player.character;
+            screenData[screenCentre.X, screenCentre.Y] = drawableMap.Player.Character;
         }
 
         /// <summary>Draws the calculated screen data to the screen</summary>

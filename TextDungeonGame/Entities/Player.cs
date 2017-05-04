@@ -12,7 +12,7 @@
         /// <param name="pos">The player's position</param>
         public Player(Position pos) : base(pos)
         {
-            character = '@';
+            Character = (char)Entities.Player;
             SightRadius = 5.5;
         }
         #endregion

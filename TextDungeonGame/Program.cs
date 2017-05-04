@@ -10,7 +10,7 @@
         static void Main(string[] args)
         {
             //Starts a new game
-            Game = new Game(60);
+            Game = new Game(40);
         }
         #endregion
     }
