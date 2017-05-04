@@ -17,6 +17,10 @@ namespace TextDungeonGame
         /// <param name="windowSize">The desired width and height of the window in columns</param>
         public Game(int windowSize)
         {
+            drawTitleScreen();
+
+            waitForGameStart();
+
             initialiseWindow(windowSize);
 
             initialiseGameWorld();
@@ -26,6 +30,26 @@ namespace TextDungeonGame
         #endregion
 
         #region Private Functions
+        /// <summary>Waits for space to be pressed before continuing the program</summary>
+        private void waitForGameStart()
+        {
+            //Keeps looping until the space bar is pressed
+            ConsoleKey pressedkey;
+            do
+                pressedkey = Console.ReadKey(true).Key;
+            while (pressedkey != ConsoleKey.Spacebar);
+        }
+
+        /// <summary>Loads and draws the title screen</summary>
+        private void drawTitleScreen()
+        {
+            //Will add a catch if the file does not exist, will start the game automatically, until then, the file must exist
+            string fileTitle = System.IO.File.ReadAllText("Title.txt");
+
+            //Draws the title screen
+            Console.Write(fileTitle + '\n');
+        }
+
         /// <summary>Initialises the game window</summary>
         /// <param name="windowSize">The width and height of the game window in columns </param>
         private void initialiseWindow(int windowSize)
