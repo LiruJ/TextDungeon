@@ -25,7 +25,7 @@ namespace TextDungeonGame
 
             initialiseGameWorld();
 
-            updateLoop();
+            while(updateLoop());
         }
         #endregion
 
@@ -76,7 +76,7 @@ namespace TextDungeonGame
         }
 
         /// <summary>Handles input and updates the world</summary>
-        private void updateLoop()
+        private bool updateLoop()
         {
             //Draws the updated scene
             Camera.Draw();
@@ -86,25 +86,28 @@ namespace TextDungeonGame
             {
                 case ConsoleKey.Spacebar:
                     initialiseGameWorld();
-                    break;
+                    return true;
                 case ConsoleKey.W:
                     Map.Update(Direction.Up);
-                    break;
+                    return true;
                 case ConsoleKey.A:
                     Map.Update(Direction.Left);
-                    break;
+                    return true;
                 case ConsoleKey.D:
                     Map.Update(Direction.Right);
-                    break;
+                    return true;
                 case ConsoleKey.S:
                     Map.Update(Direction.Down);
-                    break;
+                    return true;
                 case ConsoleKey.Escape:
-                    return;
+                    return false;
+                default:
+                    return true;
             }
 
+
             //Calls upon itself in order to create a loop
-            updateLoop();
+            //updateLoop();
         }
         #endregion
     }
